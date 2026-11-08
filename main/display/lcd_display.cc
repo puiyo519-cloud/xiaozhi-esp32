@@ -527,12 +527,18 @@ void LcdDisplay::SetupUI() {
     lv_obj_align(emoji_image_, LV_ALIGN_TOP_MID, 0,
                  text_font->line_height + lvgl_theme->spacing(8));
 
-    // Display AI logo while booting
+// Display AI logo while booting
     emoji_label_ = lv_label_create(screen);
     lv_obj_center(emoji_label_);
     lv_obj_set_style_text_font(emoji_label_, large_icon_font, 0);
     lv_obj_set_style_text_color(emoji_label_, lvgl_theme->text_color(), 0);
     lv_label_set_text(emoji_label_, MATERIAL_SYMBOLS_ROBOT_2);
+
+    // --- 新增：在螢幕下方附近顯示心率數字 ---
+    heart_rate_label_ = lv_label_create(screen);
+    lv_label_set_text(heart_rate_label_, "-- BPM");
+    lv_obj_set_style_text_color(heart_rate_label_, lvgl_theme->text_color(), 0);
+    lv_obj_align(heart_rate_label_, LV_ALIGN_BOTTOM_MID, 0, -30);
 }
 #if CONFIG_IDF_TARGET_ESP32P4
 #define MAX_MESSAGES 40
@@ -1435,5 +1441,14 @@ void LcdDisplay::SetHideSubtitle(bool hide) {
                 lv_obj_remove_flag(bottom_bar_, LV_OBJ_FLAG_HIDDEN);
             }
         }
+    }
+}
+
+void LcdDisplay::UpdateHeartRate(int heart_rate) {
+    DisplayLockGuard lock(this);
+    if (heart_rate_label_ != nullptr) {
+        char buf[32];
+        snprintf(buf, sizeof(buf), "%d BPM", heart_rate);
+        lv_label_set_text(heart_rate_label_, buf);
     }
 }
